@@ -103,4 +103,6 @@ benchmark/ioevent/libevent/runbench.tmp
 tools/a.sh
 
 Win32/Debug/ZERO_CHECK
+cmake-build-debug
+.idea
 

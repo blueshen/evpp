@@ -28,7 +28,10 @@ if (UNIX)
          -std=c++11
     )
     include_directories (${PROJECT_SOURCE_DIR}
-                         ${PROJECT_SOURCE_DIR}/3rdparty)
+                         ${PROJECT_SOURCE_DIR}/3rdparty
+                         /usr/local/include
+                         )
+    link_directories(/usr/local/lib)
 else (UNIX)
 set (CXX_FLAGS -DWIN32 -D_WIN32 -EHsc)
     set(VcpkgRoot ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET})

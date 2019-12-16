@@ -19,7 +19,7 @@
 // requests. If the memory is in use when an allocation request is made, the
 // allocator delegates allocation to the global heap.
 class handler_allocator
-  : private boost::noncopyable
+  : private asio::noncopyable
 {
 public:
   handler_allocator()
