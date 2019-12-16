@@ -1,1 +1,1 @@
-echo -n $(uname -r|awk -F"." '{print $(NF-1) "." $NF}')
+echo -n $(/usr/lib/rpm/redhat/dist.sh --dist | awk -F '.' '{print $2}').$(uname -m)
