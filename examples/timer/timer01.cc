@@ -5,12 +5,12 @@
 #endif
 
 void Print() {
-    std::cout << "Hello, world!\n";
+  std::cout << "Hello, world!\n";
 }
 
 int main() {
-    evpp::EventLoop loop;
-    loop.RunAfter(evpp::Duration(5.0), &Print);
-    loop.Run();
-    return 0;
+  evpp::EventLoop loop;
+  loop.RunAfter(evpp::Duration(5.0), &Print);
+  loop.Run();
+  return 0;
 }

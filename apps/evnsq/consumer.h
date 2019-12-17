@@ -15,9 +15,9 @@ namespace evnsq {
 class Command;
 
 class EVNSQ_EXPORT Consumer : public Client {
-public:
-    Consumer(evpp::EventLoop* loop, const std::string& topic, const std::string& channel, const Option& ops);
-    ~Consumer();
+ public:
+  Consumer(evpp::EventLoop *loop, const std::string &topic, const std::string &channel, const Option &ops);
+  ~Consumer();
 };
 }
 

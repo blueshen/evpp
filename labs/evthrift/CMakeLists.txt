@@ -6,9 +6,9 @@ else ()
 endif ()
 
 set(EVPP_THRIFT_SRCS
-    thrift_conn.cc thrift_conn.h
-    thrift_server.cc thrift_server.h
-    )    
+        thrift_conn.cc thrift_conn.h
+        thrift_server.cc thrift_server.h
+        )
 
 add_library(evthrift_static ${EVPP_THRIFT_SRCS})
 target_link_libraries(evthrift_static ${LIBRARIES} ${THRIFT_LIBRARY})

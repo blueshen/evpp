@@ -10,69 +10,75 @@ namespace evmc {
 typedef std::map<std::string, MemcacheClientPtr> MemcClientMap;
 
 class MemcacheClientPool : MemcacheClientBase {
-public:
-    friend MemcacheClient;
+ public:
+  friend MemcacheClient;
 
-    // @brief
-    // @param[in] vbucket_conf - ÓÐÈýÖÖ¸ñÊ½
-    //      1. memcachedµ¥ÊµÀýÄ£Ê½£¬´«ÈëµÄ²ÎÊýÓ¦¸Ã "host:port"
-    //      2. memcached¼¯ÈºÄ£Ê½£¬´«ÊäµÄ²ÎÊý¿ÉÒÔÊÇvbucket conf url £º "http://host:port/vbucket_conf"
-    //      3. memcached¼¯ÈºÄ£Ê½£¬´«ÊäµÄ²ÎÊý¿ÉÒÔÊÇvbucket conf ±¾µØÎÄ¼þ£º "/the/path/to/vbucket_conf"
-    // @param[in] thread_num -
-    // @param[in] timeout_ms -
-    // @return  -
-    MemcacheClientPool(const char* vbucket_conf, int thread_num, int timeout_ms, const char* key_filter = "+")
-        : MemcacheClientBase(vbucket_conf), vbucket_conf_file_(vbucket_conf), loop_pool_(&loop_, thread_num)
-        , timeout_ms_(timeout_ms), key_filter_(key_filter) {
-    }
-    virtual ~MemcacheClientPool();
+  // @brief
+  // @param[in] vbucket_conf - ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½Ê½
+  //      1. memcachedï¿½ï¿½Êµï¿½ï¿½Ä£Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ "host:port"
+  //      2. memcachedï¿½ï¿½ÈºÄ£Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½vbucket conf url ï¿½ï¿½ "http://host:port/vbucket_conf"
+  //      3. memcachedï¿½ï¿½ÈºÄ£Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½vbucket conf ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ "/the/path/to/vbucket_conf"
+  // @param[in] thread_num -
+  // @param[in] timeout_ms -
+  // @return  -
+  MemcacheClientPool(const char *vbucket_conf, int thread_num, int timeout_ms, const char *key_filter = "+")
+      : MemcacheClientBase(vbucket_conf),
+        vbucket_conf_file_(vbucket_conf),
+        loop_pool_(&loop_, thread_num),
+        timeout_ms_(timeout_ms),
+        key_filter_(key_filter) {
+  }
+  virtual ~MemcacheClientPool();
 
-    bool Start();
-    void Stop(bool wait_thread_exit);
+  bool Start();
+  void Stop(bool wait_thread_exit);
 
-    void Set(evpp::EventLoop* caller_loop, const std::string& key, const std::string& value, uint32_t flags,
-             uint32_t expire, SetCallback callback);
-    inline void Set(evpp::EventLoop* caller_loop, const std::string& key, const std::string& value, SetCallback callback) {
-        Set(caller_loop, key, value, 0, 0, callback);
-    }
+  void Set(evpp::EventLoop *caller_loop, const std::string &key, const std::string &value, uint32_t flags,
+           uint32_t expire, SetCallback callback);
+  inline void Set(evpp::EventLoop *caller_loop,
+                  const std::string &key,
+                  const std::string &value,
+                  SetCallback callback) {
+    Set(caller_loop, key, value, 0, 0, callback);
+  }
 
-    void Remove(evpp::EventLoop* caller_loop, const std::string& key, RemoveCallback callback);
-    void Get(evpp::EventLoop* caller_loop, const std::string& key, GetCallback callback);
-    void PrefixGet(evpp::EventLoop* caller_loop, const std::string& key, PrefixGetCallback callback);
+  void Remove(evpp::EventLoop *caller_loop, const std::string &key, RemoveCallback callback);
+  void Get(evpp::EventLoop *caller_loop, const std::string &key, GetCallback callback);
+  void PrefixGet(evpp::EventLoop *caller_loop, const std::string &key, PrefixGetCallback callback);
 
-    void MultiGet(evpp::EventLoop* caller_loop, std::vector<std::string>& keys, MultiGetCallback& callback);
-    void RunBackGround(const std::function<void(void)>& fun);
+  void MultiGet(evpp::EventLoop *caller_loop, std::vector<std::string> &keys, MultiGetCallback &callback);
+  void RunBackGround(const std::function<void(void)> &fun);
 //  void MultiGetImpl(evpp::EventLoop* caller_loop, std::vector<std::string>& keys, MultiGetCallback callback);
 
-    void PrefixMultiGet(evpp::EventLoop* caller_loop, std::vector<std::string>& keys, PrefixMultiGetCallback callback);
-    virtual void LaunchCommand(CommandPtr& command);
-private:
-    // noncopyable
-    MemcacheClientPool(const MemcacheClientPool&);
-    const MemcacheClientPool& operator=(const MemcacheClientPool&);
-    static void MainEventThread();
+  void PrefixMultiGet(evpp::EventLoop *caller_loop, std::vector<std::string> &keys, PrefixMultiGetCallback callback);
+  virtual void LaunchCommand(CommandPtr &command);
+ private:
+  // noncopyable
+  MemcacheClientPool(const MemcacheClientPool &);
+  const MemcacheClientPool &operator=(const MemcacheClientPool &);
+  static void MainEventThread();
 
-private:
-    void OnClientConnection(const evpp::TCPConnPtr& conn, MemcacheClientPtr memc_client);
-    bool DoReloadConf();
-    inline MemcClientMap* GetMemcClientMap(evpp::EventLoop* loop) {
-        return evpp::any_cast<MemcClientMap*>(loop->context());
-    }
-private:
-    void DoLaunchCommand(evpp::EventLoop* loop, CommandPtr command);
+ private:
+  void OnClientConnection(const evpp::TCPConnPtr &conn, MemcacheClientPtr memc_client);
+  bool DoReloadConf();
+  inline MemcClientMap *GetMemcClientMap(evpp::EventLoop *loop) {
+    return evpp::any_cast<MemcClientMap *>(loop->context());
+  }
+ private:
+  void DoLaunchCommand(evpp::EventLoop *loop, CommandPtr command);
 
-    std::vector<MemcClientMap> memc_client_map_;
+  std::vector<MemcClientMap> memc_client_map_;
 
-    std::string vbucket_conf_file_;
-    evpp::EventLoop loop_;
-    evpp::EventLoopThreadPool loop_pool_;
-    int timeout_ms_;
+  std::string vbucket_conf_file_;
+  evpp::EventLoop loop_;
+  evpp::EventLoopThreadPool loop_pool_;
+  int timeout_ms_;
 
-    MultiModeVbucketConfigPtr vbucket_config_;
-    //pthread_rwlock_t vbucket_config_mutex_; // TODO : use rw mutex
-    std::string key_filter_;
+  MultiModeVbucketConfigPtr vbucket_config_;
+  //pthread_rwlock_t vbucket_config_mutex_; // TODO : use rw mutex
+  std::string key_filter_;
 
-    std::atomic_int next_thread_;
+  std::atomic_int next_thread_;
 };
 
 }

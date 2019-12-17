@@ -4,7 +4,7 @@
 #include <evpp/logging.h>
 
 TEST_UNIT(Teststrerror) {
-    LOG_ERROR << evpp::strerror(EAGAIN);
+  LOG_ERROR << evpp::strerror(EAGAIN);
 }
 
 

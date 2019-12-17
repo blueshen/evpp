@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append('gen-py')
 
 from thrift.transport import TSocket
@@ -14,11 +15,13 @@ def echo(s, client):
     print(s)
     return s
 
+
 def execute(client):
     r = Request(101, 102, "ccc", "ddd", "comments")
     result = client.execute("python-exec", r)
     print("execute finished")
     return result
+
 
 def ping(client):
     client.ping()

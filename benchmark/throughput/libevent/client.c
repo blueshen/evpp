@@ -11,23 +11,20 @@
 int64_t total_bytes_read = 0;
 int64_t total_messages_read = 0;
 
-static void set_tcp_no_delay(evutil_socket_t fd)
-{
+static void set_tcp_no_delay(evutil_socket_t fd) {
   int one = 1;
   setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
-      &one, sizeof one);
+             &one, sizeof one);
 }
 
-static void timeoutcb(evutil_socket_t fd, short what, void *arg)
-{
+static void timeoutcb(evutil_socket_t fd, short what, void *arg) {
   struct event_base *base = arg;
   printf("timeout\n");
-  
+
   event_base_loopexit(base, NULL);
 }
 
-static void readcb(struct bufferevent *bev, void *ctx)
-{
+static void readcb(struct bufferevent *bev, void *ctx) {
   /* This callback is invoked when there is data to read on bev. */
   struct evbuffer *input = bufferevent_get_input(bev);
   struct evbuffer *output = bufferevent_get_output(bev);
@@ -39,8 +36,7 @@ static void readcb(struct bufferevent *bev, void *ctx)
   evbuffer_add_buffer(output, input);
 }
 
-static void eventcb(struct bufferevent *bev, short events, void *ptr)
-{
+static void eventcb(struct bufferevent *bev, short events, void *ptr) {
   if (events & BEV_EVENT_CONNECTED) {
     evutil_socket_t fd = bufferevent_getfd(bev);
     set_tcp_no_delay(fd);
@@ -49,8 +45,7 @@ static void eventcb(struct bufferevent *bev, short events, void *ptr)
   }
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   struct event_base *base;
   struct bufferevent **bevs;
   struct sockaddr_in sin;
@@ -77,7 +72,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  char* message = malloc(block_size);
+  char *message = malloc(block_size);
   for (i = 0; i < block_size; ++i) {
     message[i] = i % 128;
   }
@@ -95,11 +90,11 @@ int main(int argc, char **argv)
     struct bufferevent *bev = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
 
     bufferevent_setcb(bev, readcb, NULL, eventcb, NULL);
-    bufferevent_enable(bev, EV_READ|EV_WRITE);
+    bufferevent_enable(bev, EV_READ | EV_WRITE);
     evbuffer_add(bufferevent_get_output(bev), message, block_size);
 
     if (bufferevent_socket_connect(bev,
-          (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+                                   (struct sockaddr *) &sin, sizeof(sin)) < 0) {
       /* Error starting connection */
       bufferevent_free(bev);
       puts("error connect");
@@ -121,9 +116,9 @@ int main(int argc, char **argv)
   printf("%zd total bytes read\n", total_bytes_read);
   printf("%zd total messages read\n", total_messages_read);
   printf("%.3f average messages size\n",
-      (double)total_bytes_read / total_messages_read);
+         (double) total_bytes_read / total_messages_read);
   printf("%.3f MiB/s throughtput\n",
-      (double)total_bytes_read / (timeout.tv_sec * 1024 * 1024));
+         (double) total_bytes_read / (timeout.tv_sec * 1024 * 1024));
   return 0;
 }
 

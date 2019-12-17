@@ -11,22 +11,22 @@ class TimerEventWatcher;
 class InvokeTimer;
 
 class InvokeTimer {
-public:
-    typedef std::function<void()> Functor;
+ public:
+  typedef std::function<void()> Functor;
 
-    InvokeTimer(struct event_base* evloop, double timeout_ms, const Functor& f);
-    ~InvokeTimer();
+  InvokeTimer(struct event_base *evloop, double timeout_ms, const Functor &f);
+  ~InvokeTimer();
 
-    void Start();
+  void Start();
 
-private:
-    void OnTimerTriggered();
+ private:
+  void OnTimerTriggered();
 
-private:
-    struct event_base* loop_;
-    double timeout_ms_;
-    Functor functor_;
-    std::shared_ptr<TimerEventWatcher> timer_;
+ private:
+  struct event_base *loop_;
+  double timeout_ms_;
+  Functor functor_;
+  std::shared_ptr<TimerEventWatcher> timer_;
 };
 
 }

@@ -11,34 +11,34 @@
 #include "../../../examples/winmain-inl.h"
 
 static bool responsed = false;
-static void HandleHTTPResponse(const std::shared_ptr<evpp::httpc::Response>& response, evpp::httpc::Request* request) {
-    LOG_INFO << "http_code=" << response->http_code() << " [" << response->body().ToString() << "]";
-    std::string header = response->FindHeader("Connection");
-    LOG_INFO << "HTTP HEADER Connection=" << header;
-    responsed = true;
-    assert(request == response->request());
-    delete request; // The request MUST BE deleted in EventLoop thread.
+static void HandleHTTPResponse(const std::shared_ptr<evpp::httpc::Response> &response, evpp::httpc::Request *request) {
+  LOG_INFO << "http_code=" << response->http_code() << " [" << response->body().ToString() << "]";
+  std::string header = response->FindHeader("Connection");
+  LOG_INFO << "HTTP HEADER Connection=" << header;
+  responsed = true;
+  assert(request == response->request());
+  delete request; // The request MUST BE deleted in EventLoop thread.
 }
 
 int main() {
-    evpp::EventLoopThread t;
-    t.Start(true);
+  evpp::EventLoopThread t;
+  t.Start(true);
 #if defined(EVPP_HTTP_CLIENT_SUPPORTS_SSL)
-    std::shared_ptr<evpp::httpc::ConnPool> pool(new evpp::httpc::ConnPool("www.360.cn", 443,true, evpp::Duration(2.0)));
+  std::shared_ptr<evpp::httpc::ConnPool> pool(new evpp::httpc::ConnPool("www.360.cn", 443,true, evpp::Duration(2.0)));
 #else
-    std::shared_ptr<evpp::httpc::ConnPool> pool(new evpp::httpc::ConnPool("www.360.cn", 80, evpp::Duration(2.0)));
+  std::shared_ptr<evpp::httpc::ConnPool> pool(new evpp::httpc::ConnPool("www.360.cn", 80, evpp::Duration(2.0)));
 #endif
-    evpp::httpc::Request* r = new evpp::httpc::Request(pool.get(), t.loop(), "/robots.txt", "");
-    LOG_INFO << "Do http request";
-    r->Execute(std::bind(&HandleHTTPResponse, std::placeholders::_1, r));
+  evpp::httpc::Request *r = new evpp::httpc::Request(pool.get(), t.loop(), "/robots.txt", "");
+  LOG_INFO << "Do http request";
+  r->Execute(std::bind(&HandleHTTPResponse, std::placeholders::_1, r));
 
-    while (!responsed) {
-        usleep(1);
-    }
+  while (!responsed) {
+    usleep(1);
+  }
 
-    pool->Clear();
-    pool.reset();
-    t.Stop(true);
-    LOG_INFO << "EventLoopThread stopped.";
-    return 0;
+  pool->Clear();
+  pool.reset();
+  t.Stop(true);
+  LOG_INFO << "EventLoopThread stopped.";
+  return 0;
 }

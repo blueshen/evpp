@@ -14,7 +14,6 @@
 #include "extract_vbucket_conf.h"
 #include "likely.h"
 
-
 namespace evmc {
 
 const uint16_t BAD_SERVER_ID = 65535;
@@ -23,195 +22,193 @@ VbucketConfig::VbucketConfig() : rand_(new Random(time(nullptr))) {
 }
 
 VbucketConfig::~VbucketConfig() {
-    delete rand_;
+  delete rand_;
 }
 
 enum {
-    INIT_WEIGHT = 1000,
-    MAX_WEIGHT = 1000000,
-    MIN_WEIGHT = 100,
-    CLUSTER_MODE = 1,
-    STAND_ALONE_MODE = 2,
+  INIT_WEIGHT = 1000,
+  MAX_WEIGHT = 1000000,
+  MIN_WEIGHT = 100,
+  CLUSTER_MODE = 1,
+  STAND_ALONE_MODE = 2,
 };
 
 void VbucketConfig::OnVbucketResult(uint16_t vbucket, bool success) {
-    // ÉÓ´ø¸üÐÂ½¡¿µÖµ£¬²»×¨ÃÅ¸üÐÂ. ÕâÑù¸Ãº¯Êý¾ÍÊÇ¶àÓàµÄ
+  // ï¿½Ó´ï¿½ï¿½ï¿½ï¿½Â½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½×¨ï¿½Å¸ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½Ãºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¶ï¿½ï¿½ï¿½ï¿½
 
-    // ½¡¿µÖµ/È¨ÖØ¸üÐÂ²ßÂÔ:
-    // 1. ½¡¿µÖµ¿ìËÙ(Ö¸Êý)Ë¥¼õ£¬ÂýËÙ(ÏßÐÔ)»Ö¸´
-    // 2. N¸öreplica£¬Ä¿Ç°ÊÇÑ¡²»Í¬¶Ë¿ÚÖØÊÔÁ½´Î. ÊÇ·ñÐèÒªÈ«²¿ÖØÊÔÒ»±é£¿
-    // 3. ¸üÐÂ½¡¿µÖµÊ±£¬¼æ¹ËÏß³Ì°²È«ºÍÐÔÄÜ
-    return;
+  // ï¿½ï¿½ï¿½ï¿½Öµ/È¨ï¿½Ø¸ï¿½ï¿½Â²ï¿½ï¿½ï¿½:
+  // 1. ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½(Ö¸ï¿½ï¿½)Ë¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½)ï¿½Ö¸ï¿½
+  // 2. Nï¿½ï¿½replicaï¿½ï¿½Ä¿Ç°ï¿½ï¿½Ñ¡ï¿½ï¿½Í¬ï¿½Ë¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½. ï¿½Ç·ï¿½ï¿½ï¿½ÒªÈ«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½é£¿
+  // 3. ï¿½ï¿½ï¿½Â½ï¿½ï¿½ï¿½ÖµÊ±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß³Ì°ï¿½È«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+  return;
 }
 
 uint16_t VbucketConfig::SelectServerFirstId(uint16_t vbucket) const {
-    uint16_t vb = vbucket % vbucket_map_.size();
-    const std::vector<int>& server_ids = vbucket_map_[vb];
-    return server_ids[0];
+  uint16_t vb = vbucket % vbucket_map_.size();
+  const std::vector<int> &server_ids = vbucket_map_[vb];
+  return server_ids[0];
 }
 
 uint16_t VbucketConfig::SelectServerId(uint16_t vbucket, uint16_t last_id) const {
-    uint16_t vb = vbucket % vbucket_map_.size();
+  uint16_t vb = vbucket % vbucket_map_.size();
 
-    const std::vector<int>& server_ids = vbucket_map_[vb];
+  const std::vector<int> &server_ids = vbucket_map_[vb];
 
-    uint16_t server_id = BAD_SERVER_ID;
-    {
-        // °´½¡¿µÈ¨ÖØÑ¡¶¨server id
-        std::map<int64_t, uint16_t> weighted_items;
-        int64_t total_weight = 0;
+  uint16_t server_id = BAD_SERVER_ID;
+  {
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¨ï¿½ï¿½Ñ¡ï¿½ï¿½server id
+    std::map<int64_t, uint16_t> weighted_items;
+    int64_t total_weight = 0;
 
-        for (size_t i = 0 ; i < server_ids.size(); ++i) {
-            if (server_ids[i] == last_id) {
-                continue;
-            }
+    for (size_t i = 0; i < server_ids.size(); ++i) {
+      if (server_ids[i] == last_id) {
+        continue;
+      }
 
-            total_weight += server_health_[server_ids[i]];
-            // total_weight += 1000; // for test only
-            weighted_items[total_weight] = server_ids[i];
-        }
-
-        if (total_weight > 0) {
-            server_id = weighted_items.upper_bound(rand_->Next() % total_weight)->second;
-            LOG_DEBUG << "SelectServerId selected_server_id=" << server_id << " last_id=" << last_id;
-        } else {
-            return BAD_SERVER_ID;
-        }
+      total_weight += server_health_[server_ids[i]];
+      // total_weight += 1000; // for test only
+      weighted_items[total_weight] = server_ids[i];
     }
 
-    // ÉÓ´ø¸üÐÂ½¡¿µÖµ£¬²»×¨ÃÅ¸üÐÂ
-    server_health_[server_id] += 1000;
-
-    if (server_health_[server_id] > MAX_WEIGHT) {
-        server_health_[server_id] = MAX_WEIGHT;
+    if (total_weight > 0) {
+      server_id = weighted_items.upper_bound(rand_->Next() % total_weight)->second;
+      LOG_DEBUG << "SelectServerId selected_server_id=" << server_id << " last_id=" << last_id;
+    } else {
+      return BAD_SERVER_ID;
     }
+  }
 
-    if (last_id < server_health_.size()) {
-        server_health_[last_id] /= 2;
+  // ï¿½Ó´ï¿½ï¿½ï¿½ï¿½Â½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½×¨ï¿½Å¸ï¿½ï¿½ï¿½
+  server_health_[server_id] += 1000;
 
-        if (server_health_[last_id] <= MIN_WEIGHT) {
-            server_health_[last_id] = 100;
-        }
+  if (server_health_[server_id] > MAX_WEIGHT) {
+    server_health_[server_id] = MAX_WEIGHT;
+  }
+
+  if (last_id < server_health_.size()) {
+    server_health_[last_id] /= 2;
+
+    if (server_health_[last_id] <= MIN_WEIGHT) {
+      server_health_[last_id] = 100;
     }
+  }
 
-    return server_id;
+  return server_id;
 }
 
-
-static hashkit_hash_algorithm_t algorithm(const std::string& alg) {
-    if (alg == "MD5") {
-        return HASHKIT_HASH_MD5;
-    }
-    return HASHKIT_HASH_MAX;
+static hashkit_hash_algorithm_t algorithm(const std::string &alg) {
+  if (alg == "MD5") {
+    return HASHKIT_HASH_MD5;
+  }
+  return HASHKIT_HASH_MAX;
 }
 
-uint16_t VbucketConfig::GetVbucketByKey(const char* key, size_t nkey) const {
-    uint32_t digest = libhashkit_digest(key, nkey, algorithm(algorithm_));
-    return digest % vbucket_map_.size();
+uint16_t VbucketConfig::GetVbucketByKey(const char *key, size_t nkey) const {
+  uint32_t digest = libhashkit_digest(key, nkey, algorithm(algorithm_));
+  return digest % vbucket_map_.size();
 }
 
-bool VbucketConfig::Load(const char* json_info) {
-    rapidjson::Document d;
+bool VbucketConfig::Load(const char *json_info) {
+  rapidjson::Document d;
 
-    d.Parse(json_info);
+  d.Parse(json_info);
 
-    replicas_ = d["numReplicas"].GetInt();
-    algorithm_ = d["hashAlgorithm"].GetString();
+  replicas_ = d["numReplicas"].GetInt();
+  algorithm_ = d["hashAlgorithm"].GetString();
 
-    rapidjson::Value& servers = d["serverList"];
-    LOG_DEBUG << "server count = " << servers.Size();
+  rapidjson::Value &servers = d["serverList"];
+  LOG_DEBUG << "server count = " << servers.Size();
 
-    for (rapidjson::SizeType i = 0; i < servers.Size(); i++) {
-        server_list_.emplace_back(servers[i].GetString());
-        server_health_.emplace_back(INIT_WEIGHT);
+  for (rapidjson::SizeType i = 0; i < servers.Size(); i++) {
+    server_list_.emplace_back(servers[i].GetString());
+    server_health_.emplace_back(INIT_WEIGHT);
+  }
+
+  rapidjson::Value &vbuckets = d["vBucketMap"];
+
+  for (rapidjson::SizeType i = 0; i < vbuckets.Size(); i++) {
+    rapidjson::Value &ids = vbuckets[i];
+    vbucket_map_.emplace_back(std::vector<int>());
+
+    for (rapidjson::SizeType j = 0; j < ids.Size(); j++) {
+      vbucket_map_.back().emplace_back(ids[j].GetInt());
     }
 
-    rapidjson::Value& vbuckets = d["vBucketMap"];
+  }
 
-    for (rapidjson::SizeType i = 0; i < vbuckets.Size(); i++) {
-        rapidjson::Value& ids = vbuckets[i];
-        vbucket_map_.emplace_back(std::vector<int>());
+  return true;
+}
 
-        for (rapidjson::SizeType j = 0; j < ids.Size(); j++) {
-            vbucket_map_.back().emplace_back(ids[j].GetInt());
-        }
-
+bool MultiModeVbucketConfig::IsStandAlone(const char *serv) {
+  bool has_semicolon = false;
+  int i = 0;
+  char c = *(serv + i);
+  while (c != '\0') {
+    if (c == ':') {
+      has_semicolon = true;
     }
-
+    if (c == '/') {
+      break;
+    }
+    ++i;
+    c = *(serv + i);
+  }
+  if (c == '\0' && has_semicolon) {
     return true;
+  }
+  return false;
 }
 
-bool MultiModeVbucketConfig::IsStandAlone(const char* serv) {
-    bool has_semicolon = false;
-    int i = 0;
-    char c = *(serv + i);
-    while (c != '\0') {
-        if (c == ':') {
-            has_semicolon = true;
-        }
-        if (c == '/') {
-            break;
-        }
-        ++i;
-        c = *(serv + i);
-    }
-    if (c == '\0' && has_semicolon) {
-        return true;
+bool MultiModeVbucketConfig::Load(const char *json_file) {
+  if (IsStandAlone(json_file)) {
+    mode_ = STAND_ALONE_MODE;
+    single_server_.emplace_back(json_file);
+    return true;
+  } else {
+    mode_ = CLUSTER_MODE;
+    std::string context;
+    int ret = GetVbucketConf::GetVbucketConfContext(json_file, context);
+    if (ret == 0) {
+      return VbucketConfig::Load(context.c_str());
     }
     return false;
+  }
 }
 
-bool MultiModeVbucketConfig::Load(const char* json_file) {
-    if (IsStandAlone(json_file)) {
-        mode_ = STAND_ALONE_MODE;
-        single_server_.emplace_back(json_file);
-        return true;
-    } else {
-        mode_ = CLUSTER_MODE;
-        std::string context;
-        int ret = GetVbucketConf::GetVbucketConfContext(json_file, context);
-        if (ret == 0) {
-            return VbucketConfig::Load(context.c_str());
-        }
-        return false;
-    }
-}
-
-
-uint16_t MultiModeVbucketConfig::GetVbucketByKey(const char* key, size_t nkey) const {
-    if (mode_ != STAND_ALONE_MODE) {
-        return VbucketConfig::GetVbucketByKey(key, nkey);
-    }
-    return 0;
+uint16_t MultiModeVbucketConfig::GetVbucketByKey(const char *key, size_t nkey) const {
+  if (mode_ != STAND_ALONE_MODE) {
+    return VbucketConfig::GetVbucketByKey(key, nkey);
+  }
+  return 0;
 }
 
 uint16_t MultiModeVbucketConfig::SelectServerFirstId(uint16_t vbucket) const {
-    if (mode_ != STAND_ALONE_MODE) {
-        return VbucketConfig::SelectServerFirstId(vbucket);
-    }
-    return 0;
+  if (mode_ != STAND_ALONE_MODE) {
+    return VbucketConfig::SelectServerFirstId(vbucket);
+  }
+  return 0;
 }
 
 uint16_t MultiModeVbucketConfig::SelectServerId(uint16_t vbucket, uint16_t last_id) const {
-    if (mode_ != STAND_ALONE_MODE) {
-        return VbucketConfig::SelectServerId(vbucket, last_id);
-    }
-    return 0;
+  if (mode_ != STAND_ALONE_MODE) {
+    return VbucketConfig::SelectServerId(vbucket, last_id);
+  }
+  return 0;
 }
 
-const std::string& MultiModeVbucketConfig::GetServerAddrById(uint16_t server_id) const {
-    if (mode_ != STAND_ALONE_MODE) {
-        return VbucketConfig::GetServerAddrById(server_id);
-    }
-    assert(single_server_.size() == 1);
-    return single_server_[0];
+const std::string &MultiModeVbucketConfig::GetServerAddrById(uint16_t server_id) const {
+  if (mode_ != STAND_ALONE_MODE) {
+    return VbucketConfig::GetServerAddrById(server_id);
+  }
+  assert(single_server_.size() == 1);
+  return single_server_[0];
 }
 
-const std::vector<std::string>& MultiModeVbucketConfig::server_list() const {
-    if (mode_ != STAND_ALONE_MODE) {
-        return VbucketConfig::server_list();
-    }
-    return single_server_;
+const std::vector<std::string> &MultiModeVbucketConfig::server_list() const {
+  if (mode_ != STAND_ALONE_MODE) {
+    return VbucketConfig::server_list();
+  }
+  return single_server_;
 }
 
 }

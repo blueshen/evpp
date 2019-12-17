@@ -15,24 +15,24 @@ namespace evmc {
 class MemcacheClient;
 
 class BinaryCodec {
-public:
-    explicit BinaryCodec(MemcacheClient* memc_client) : memc_client_(memc_client) {}
+ public:
+  explicit BinaryCodec(MemcacheClient *memc_client) : memc_client_(memc_client) {}
 
-    void OnCodecMessage(const evpp::TCPConnPtr& conn,
-                        evpp::Buffer* buf);
+  void OnCodecMessage(const evpp::TCPConnPtr &conn,
+                      evpp::Buffer *buf);
 
-private:
-    // noncopyable
-    BinaryCodec(const BinaryCodec&);
-    void DecodePrefixGetPacket(const protocol_binary_response_header& resp,
-                               evpp::Buffer* buf, std::string& key, CommandPtr& cmd);
-    const BinaryCodec& operator=(const BinaryCodec&);
+ private:
+  // noncopyable
+  BinaryCodec(const BinaryCodec &);
+  void DecodePrefixGetPacket(const protocol_binary_response_header &resp,
+                             evpp::Buffer *buf, std::string &key, CommandPtr &cmd);
+  const BinaryCodec &operator=(const BinaryCodec &);
 
-    void OnResponsePacket(const protocol_binary_response_header& resp,
-                          evpp::Buffer* buf);
-private:
-    // TODO : ÈôÊ¹ÓÃÖÇÄÜÖ¸Õë£¬Òª´¦ÀíÑ­»·ÒýÓÃ. clientµÄ»Øµ÷ÖÐÒýÓÃÁËcodec
-    MemcacheClient* memc_client_;
+  void OnResponsePacket(const protocol_binary_response_header &resp,
+                        evpp::Buffer *buf);
+ private:
+  // TODO : ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ë£¬Òªï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½. clientï¿½Ä»Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½codec
+  MemcacheClient *memc_client_;
 };
 
 }

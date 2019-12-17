@@ -37,31 +37,31 @@
 
 namespace {
 static bool g_event_handler_called = false;
-static void Handle(evpp::EventLoop* loop) {
-    g_event_handler_called = true;
-    loop->Stop();
+static void Handle(evpp::EventLoop *loop) {
+  g_event_handler_called = true;
+  loop->Stop();
 }
 
-static void MyEventThread(evpp::EventLoop* loop, evpp::PipeEventWatcher* ev) {
-    if (ev->Init()) {
-        ev->AsyncWait();
-    }
+static void MyEventThread(evpp::EventLoop *loop, evpp::PipeEventWatcher *ev) {
+  if (ev->Init()) {
+    ev->AsyncWait();
+  }
 
-    loop->Run();
-    delete ev; // make sure to initialize and delete in the same thread.
+  loop->Run();
+  delete ev; // make sure to initialize and delete in the same thread.
 }
 }
 
 TEST_UNIT(testPipeEventWatcher) {
-    std::unique_ptr<evpp::EventLoop> loop(new evpp::EventLoop);
-    evpp::PipeEventWatcher* ev = new evpp::PipeEventWatcher(loop.get(), std::bind(&Handle, loop.get()));
-    std::thread th(MyEventThread, loop.get(), ev);
-    ::usleep(1000 * 100);
-    ev->Notify();
-    th.join();
-    loop.reset();
-    H_TEST_ASSERT(g_event_handler_called == true);
-    H_TEST_ASSERT(evpp::GetActiveEventCount() == 0);
+  std::unique_ptr<evpp::EventLoop> loop(new evpp::EventLoop);
+  evpp::PipeEventWatcher *ev = new evpp::PipeEventWatcher(loop.get(), std::bind(&Handle, loop.get()));
+  std::thread th(MyEventThread, loop.get(), ev);
+  ::usleep(1000 * 100);
+  ev->Notify();
+  th.join();
+  loop.reset();
+      H_TEST_ASSERT(g_event_handler_called == true);
+      H_TEST_ASSERT(evpp::GetActiveEventCount() == 0);
 }
 
 
