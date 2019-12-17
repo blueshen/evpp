@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "platform_config.h"
 
 #ifdef H_OS_WINDOWS
@@ -137,7 +136,6 @@ typedef int ssize_t;
     ((e) == ECONNREFUSED)
 
 #endif
-
 
 #ifdef H_OS_WINDOWS
 #define evpp_socket_t intptr_t

@@ -14,7 +14,6 @@
 #include <WinSock2.h>
 #endif
 
-
 #ifdef H_LIBEVENT_VERSION_14
 #include <event.h>
 #include <evhttp.h>

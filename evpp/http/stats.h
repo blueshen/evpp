@@ -13,19 +13,19 @@ namespace evpp {
 namespace http {
 namespace stats {
 
-// ÕâÈý¸öÊ±¼äÏà¼Ó¾ÍÊÇÒ»¸öÇëÇóÔÚÓ¦ÓÃ²ãÕýÕæºÄ·ÑµÄ´¦ÀíÊ±¼ä
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½Ó¾ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½Ã²ï¿½ï¿½ï¿½ï¿½ï¿½Ä·ÑµÄ´ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
 struct Time {
-    Duration dispatched_time; // ´Ó½ÓÊÕµ½Ò»¸öÇëÇó¿ªÊ¼¼ÆÊ±£¬µ½¸ÃÇëÇó±»µ÷¶Èµ½¹¤×÷Ïß³Ì¿ªÊ¼Ö´ÐÐ£¬Ö®¼äµÄÏûºÄµÄÊ±¼ä
-    Duration execute_time; // ¸ÃÇëÇóÔÚ¹¤×÷Ïß³ÌÖÐÖ´ÐÐ¹ý³ÌºÄ·ÑµÄÊ±¼ä
-    Duration response_time; // ¸ÃÇëÇóÔÚ¹¤×÷Ïß³ÌÖ´ÐÐÍê³ÉÊ±¿ªÊ¼¼ÆÊ±£¬µ½¸ÃÇëÇóµ÷¶Èµ½¼àÌýÏß³ÌÍê³É·¢ËÍ¹¤×÷ÎªÖ¹£¬Ö®¼äÏûºÄµÄÊ±¼ä
+  Duration dispatched_time; // ï¿½Ó½ï¿½ï¿½Õµï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ó±»µï¿½ï¿½Èµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß³Ì¿ï¿½Ê¼Ö´ï¿½Ð£ï¿½Ö®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äµï¿½Ê±ï¿½ï¿½
+  Duration execute_time; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¹ï¿½ï¿½ï¿½ï¿½ß³ï¿½ï¿½ï¿½Ö´ï¿½Ð¹ï¿½ï¿½ÌºÄ·Ñµï¿½Ê±ï¿½ï¿½
+  Duration response_time; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¹ï¿½ï¿½ï¿½ï¿½ß³ï¿½Ö´ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ê¼ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Èµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß³ï¿½ï¿½ï¿½É·ï¿½ï¿½Í¹ï¿½ï¿½ï¿½ÎªÖ¹ï¿½ï¿½Ö®ï¿½ï¿½ï¿½ï¿½ï¿½Äµï¿½Ê±ï¿½ï¿½
 };
 
 struct Count {
-    std::atomic<uint64_t> recv; // ½ÓÊÕµ½µÄÇëÇó¸öÊý
-    std::atomic<uint64_t> dispatched; // ·Ö·¢µ½¹¤×÷Ïß³ÌÖÐµÄÇëÇó¸öÊý
-    std::atomic<uint64_t> responsed; // ¸ø¿Í»§¶Ë»ØÓ¦µÄÇëÇó¸öÊý
-    std::atomic<uint64_t> failed; // ´¦ÀíÊ§°ÜµÄÇëÇó¸öÊý
-    std::atomic<uint64_t> slow; // ÂýÇëÇó¸öÊý£¨´¦ÀíÊ±¼ä³¬¹ýÒ»¶¨µÄãÐÖµ£©
+  std::atomic<uint64_t> recv; // ï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+  std::atomic<uint64_t> dispatched; // ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß³ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+  std::atomic<uint64_t> responsed; // ï¿½ï¿½ï¿½Í»ï¿½ï¿½Ë»ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+  std::atomic<uint64_t> failed; // ï¿½ï¿½ï¿½ï¿½Ê§ï¿½Üµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+  std::atomic<uint64_t> slow; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ä³¬ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½
 };
 }
 }

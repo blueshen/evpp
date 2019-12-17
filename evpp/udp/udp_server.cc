@@ -10,94 +10,94 @@ namespace evpp {
 namespace udp {
 
 enum Status {
-    kRunning = 1,
-    kPaused = 2,
-    kStopping = 3,
-    kStopped = 4,
+  kRunning = 1,
+  kPaused = 2,
+  kStopping = 3,
+  kStopped = 4,
 };
 
 class Server::RecvThread {
-public:
-    RecvThread(Server* srv)
-        : fd_(INVALID_SOCKET), server_(srv), port_(-1), status_(kStopped) {
-    }
+ public:
+  RecvThread(Server *srv)
+      : fd_(INVALID_SOCKET), server_(srv), port_(-1), status_(kStopped) {
+  }
 
-    ~RecvThread() {
-        EVUTIL_CLOSESOCKET(fd_);
-        fd_ = INVALID_SOCKET;
-        if (this->thread_ && this->thread_->joinable()) {
-            try {
-                thread_->join();
-            } catch (const std::system_error& e) {
-                LOG_ERROR << "Caught a system_error:" << e.what();
-            }
-        }
+  ~RecvThread() {
+    EVUTIL_CLOSESOCKET(fd_);
+    fd_ = INVALID_SOCKET;
+    if (this->thread_ && this->thread_->joinable()) {
+      try {
+        thread_->join();
+      } catch (const std::system_error &e) {
+        LOG_ERROR << "Caught a system_error:" << e.what();
+      }
     }
+  }
 
-    bool Listen(int p) {
-        this->port_ = p;
-        this->fd_ = sock::CreateUDPServer(p);
-        if (this->fd_ < 0) {
-            LOG_ERROR << "listen error";
-            return false;
-        }
-        sock::SetTimeout(this->fd_, 500);
-        return true;
+  bool Listen(int p) {
+    this->port_ = p;
+    this->fd_ = sock::CreateUDPServer(p);
+    if (this->fd_ < 0) {
+      LOG_ERROR << "listen error";
+      return false;
     }
+    sock::SetTimeout(this->fd_, 500);
+    return true;
+  }
 
-    bool Run() {
-        this->thread_.reset(new std::thread(std::bind(&Server::RecvingLoop, this->server_, this)));
-        return true;
-    }
+  bool Run() {
+    this->thread_.reset(new std::thread(std::bind(&Server::RecvingLoop, this->server_, this)));
+    return true;
+  }
 
-    void Stop() {
-        assert(IsRunning() || IsPaused());
-        status_ = kStopping;
-    }
+  void Stop() {
+    assert(IsRunning() || IsPaused());
+    status_ = kStopping;
+  }
 
-    void Pause() {
-        assert(IsRunning());
-        status_ = kPaused;
-    }
+  void Pause() {
+    assert(IsRunning());
+    status_ = kPaused;
+  }
 
-    void Continue() {
-        assert(IsPaused());
-        status_ = kRunning;
-    }
+  void Continue() {
+    assert(IsPaused());
+    status_ = kRunning;
+  }
 
-    bool IsRunning() const {
-        return status_ == kRunning;
-    }
+  bool IsRunning() const {
+    return status_ == kRunning;
+  }
 
-    bool IsStopped() const {
-        return status_ == kStopped;
-    }
+  bool IsStopped() const {
+    return status_ == kStopped;
+  }
 
-    bool IsPaused() const {
-        return status_ == kPaused;
-    }
+  bool IsPaused() const {
+    return status_ == kPaused;
+  }
 
-    void SetStatus(Status s) {
-        status_ = s;
-    }
+  void SetStatus(Status s) {
+    status_ = s;
+  }
 
-    evpp_socket_t fd() const {
-        return fd_;
-    }
+  evpp_socket_t fd() const {
+    return fd_;
+  }
 
-    int port() const {
-        return port_;
-    }
+  int port() const {
+    return port_;
+  }
 
-    Server* server() const {
-        return server_;
-    }
-private:
-    int fd_;
-    Server* server_;
-    int port_;
-    std::shared_ptr<std::thread> thread_;
-    Status status_;
+  Server *server() const {
+    return server_;
+  }
+ private:
+  int fd_;
+  Server *server_;
+  int port_;
+  std::shared_ptr<std::thread> thread_;
+  Status status_;
 };
 
 Server::Server() : recv_buf_size_(1472) {}
@@ -106,150 +106,154 @@ Server::~Server() {
 }
 
 bool Server::Init(int port) {
-    RecvThreadPtr t(new RecvThread(this));
-    bool ret = t->Listen(port);
-    assert(ret);
-    recv_threads_.push_back(t);
-    return ret;
+  RecvThreadPtr t(new RecvThread(this));
+  bool ret = t->Listen(port);
+  assert(ret);
+  recv_threads_.push_back(t);
+  return ret;
 }
 
-bool Server::Init(const std::vector<int>& ports) {
-    for (auto it : ports) {
-        if (!Init(it)) {
-            return false;
-        }
+bool Server::Init(const std::vector<int> &ports) {
+  for (auto it : ports) {
+    if (!Init(it)) {
+      return false;
     }
-    return true;
+  }
+  return true;
 }
 
+bool Server::Init(const std::string &listen_ports/*like "53,5353,1053"*/) {
+  std::vector<std::string> vec;
+  StringSplit(listen_ports, ",", 0, vec);
 
-bool Server::Init(const std::string& listen_ports/*like "53,5353,1053"*/) {
-    std::vector<std::string> vec;
-    StringSplit(listen_ports, ",", 0, vec);
-
-    std::vector<int> v;
-    for (auto& s : vec) {
-        int i = std::atoi(s.c_str());
-        if (i <= 0) {
-            LOG_ERROR << "Cannot convert [" << s << "] to a integer. 'listen_ports' format wrong.";
-            return false;
-        }
-        v.push_back(i);
+  std::vector<int> v;
+  for (auto &s : vec) {
+    int i = std::atoi(s.c_str());
+    if (i <= 0) {
+      LOG_ERROR << "Cannot convert [" << s << "] to a integer. 'listen_ports' format wrong.";
+      return false;
     }
+    v.push_back(i);
+  }
 
-    return Init(v);
+  return Init(v);
 }
 
 void Server::AfterFork() {
-    // Nothing to do right now.
+  // Nothing to do right now.
 }
 
 bool Server::Start() {
-    if (!message_handler_) {
-        LOG_ERROR << "MessageHandler DO NOT set!";
-        return false;
-    }
+  if (!message_handler_) {
+    LOG_ERROR << "MessageHandler DO NOT set!";
+    return false;
+  }
 
-    for (auto& rt : recv_threads_) {
-        if (!rt->Run()) {
-            return false;
-        }
+  for (auto &rt : recv_threads_) {
+    if (!rt->Run()) {
+      return false;
     }
+  }
 
-    while (!IsRunning()) {
-        usleep(1);
-    }
-    return true;
+  while (!IsRunning()) {
+    usleep(1);
+  }
+  return true;
 }
 
 void Server::Stop(bool wait_thread_exit) {
-    for (auto& it : recv_threads_) {
-        it->Stop();
-    }
+  for (auto &it : recv_threads_) {
+    it->Stop();
+  }
 
-    if (wait_thread_exit) {
-        while (!IsStopped()) {
-            usleep(1);
-        }
+  if (wait_thread_exit) {
+    while (!IsStopped()) {
+      usleep(1);
     }
+  }
 }
 
 void Server::Pause() {
-    for (auto& it : recv_threads_) {
-        it->Pause();
-    }
+  for (auto &it : recv_threads_) {
+    it->Pause();
+  }
 }
 
 void Server::Continue() {
-    for (auto& it : recv_threads_) {
-        it->Continue();
-    }
+  for (auto &it : recv_threads_) {
+    it->Continue();
+  }
 }
 
 bool Server::IsRunning() const {
-    bool rc = true;
-    for (auto& it : recv_threads_) {
-        rc = rc && it->IsRunning();
-    }
+  bool rc = true;
+  for (auto &it : recv_threads_) {
+    rc = rc && it->IsRunning();
+  }
 
-    return rc;
+  return rc;
 }
 
 bool Server::IsStopped() const {
-    bool rc = true;
-    for (auto& it : recv_threads_) {
-        rc = rc && it->IsStopped();
-    }
+  bool rc = true;
+  for (auto &it : recv_threads_) {
+    rc = rc && it->IsStopped();
+  }
 
-    return rc;
+  return rc;
 }
 
-void Server::RecvingLoop(RecvThread* thread) {
-    LOG_INFO << "UDPServer is running at 0.0.0.0:" << thread->port();
-    thread->SetStatus(kRunning);
-    while (true) {
-        if (thread->IsPaused()) {
-            usleep(1);
-            continue;
-        }
-
-        if (!thread->IsRunning()) {
-            break;
-        }
-
-        // TODO use recvmmsg to improve performance
-
-        MessagePtr recv_msg(new Message(thread->fd(), recv_buf_size_));
-        socklen_t addr_len = sizeof(struct sockaddr);
-        int readn = ::recvfrom(thread->fd(), (char*)recv_msg->WriteBegin(), recv_buf_size_, 0, recv_msg->mutable_remote_addr(), &addr_len);
-        if (readn >= 0) {
-            LOG_TRACE << "fd=" << thread->fd() << " port=" << thread->port()
-                      << " recv len=" << readn << " from " << sock::ToIPPort(recv_msg->remote_addr());
-
-            recv_msg->WriteBytes(readn);
-            if (tpool_) {
-                EventLoop* loop = nullptr;
-                if (IsRoundRobin()) {
-                    loop = tpool_->GetNextLoop();
-                } else {
-                    loop = tpool_->GetNextLoopWithHash(sock::sockaddr_in_cast(recv_msg->remote_addr())->sin_addr.s_addr);
-                }
-                loop->RunInLoop(std::bind(this->message_handler_, loop, recv_msg));
-            } else {
-                this->message_handler_(nullptr, recv_msg);
-            }
-        } else {
-            int eno = errno;
-            if (EVUTIL_ERR_RW_RETRIABLE(eno)) {
-                continue;
-            }
-
-            LOG_ERROR << "errno=" << eno << " " << strerror(eno);
-        }
+void Server::RecvingLoop(RecvThread *thread) {
+  LOG_INFO << "UDPServer is running at 0.0.0.0:" << thread->port();
+  thread->SetStatus(kRunning);
+  while (true) {
+    if (thread->IsPaused()) {
+      usleep(1);
+      continue;
     }
 
-    LOG_INFO << "fd=" << thread->fd() << " port=" << thread->port() << " UDP server existed.";
-    thread->SetStatus(kStopped);
+    if (!thread->IsRunning()) {
+      break;
+    }
+
+    // TODO use recvmmsg to improve performance
+
+    MessagePtr recv_msg(new Message(thread->fd(), recv_buf_size_));
+    socklen_t addr_len = sizeof(struct sockaddr);
+    int readn = ::recvfrom(thread->fd(),
+                           (char *) recv_msg->WriteBegin(),
+                           recv_buf_size_,
+                           0,
+                           recv_msg->mutable_remote_addr(),
+                           &addr_len);
+    if (readn >= 0) {
+      LOG_TRACE << "fd=" << thread->fd() << " port=" << thread->port()
+                << " recv len=" << readn << " from " << sock::ToIPPort(recv_msg->remote_addr());
+
+      recv_msg->WriteBytes(readn);
+      if (tpool_) {
+        EventLoop *loop = nullptr;
+        if (IsRoundRobin()) {
+          loop = tpool_->GetNextLoop();
+        } else {
+          loop = tpool_->GetNextLoopWithHash(sock::sockaddr_in_cast(recv_msg->remote_addr())->sin_addr.s_addr);
+        }
+        loop->RunInLoop(std::bind(this->message_handler_, loop, recv_msg));
+      } else {
+        this->message_handler_(nullptr, recv_msg);
+      }
+    } else {
+      int eno = errno;
+      if (EVUTIL_ERR_RW_RETRIABLE(eno)) {
+        continue;
+      }
+
+      LOG_ERROR << "errno=" << eno << " " << strerror(eno);
+    }
+  }
+
+  LOG_INFO << "fd=" << thread->fd() << " port=" << thread->port() << " UDP server existed.";
+  thread->SetStatus(kStopped);
 }
 
 }
@@ -259,7 +263,7 @@ void Server::RecvingLoop(RecvThread* thread) {
 
 
 /*
-Benchmark data£ºIntel(R) Xeon(R) CPU E5-2630 0 @ 2.30GHz 24 core
+Benchmark dataï¿½ï¿½Intel(R) Xeon(R) CPU E5-2630 0 @ 2.30GHz 24 core
 
 The recvfrom thread is the bottleneck, other 23 working threads' load is very very low.
 
@@ -268,7 +272,7 @@ If we need to improve the performance, there two ways to achieve it:
 2. Using RAW SOCKET
 3. Using recvmmsg/sendmmsg which can achieve 40w QPS on single thread
 
-udp message length QPS£º
+udp message length QPSï¿½ï¿½
 0.1k    9w+
 1k      9w+
 

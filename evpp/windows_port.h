@@ -8,7 +8,7 @@
 
 
 //! Define Operation System.
-#if ( defined(WIN32) || defined(WIN64) )
+#if (defined(WIN32) || defined(WIN64))
 #   ifndef H_OS_WINDOWS
 #       define H_OS_WINDOWS
 #   endif
@@ -76,8 +76,6 @@
 #pragma comment(lib, "event_extra.lib") // libevent2.0
 #endif
 #endif
-
-
 
 #ifdef H_OS_WINDOWS
 #define __PRETTY_FUNCTION__ __FUNCTION__
